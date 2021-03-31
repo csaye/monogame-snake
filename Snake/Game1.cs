@@ -11,6 +11,7 @@ namespace Snake
         // Monogame declarations
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
+        private SpriteFont font;
 
         private enum Direction
         {
@@ -114,6 +115,7 @@ namespace Snake
 
         private int frames = 0;
         private int framesPerUpdate = 10;
+        private int score = 0;
 
         public Game1()
         {
@@ -141,6 +143,8 @@ namespace Snake
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            font = Content.Load<SpriteFont>("Arial");
         }
 
         protected override void Update(GameTime gameTime)
@@ -180,6 +184,8 @@ namespace Snake
                 Rectangle appleRect = new Rectangle(apple.X * GridSize, apple.Y * GridSize, GridSize, GridSize);
                 spriteBatch.Draw(appleTexture, appleRect, Color.White);
             }
+
+            spriteBatch.DrawString(font, $"Score: {score}", new Vector2(0, 0), Color.White);
 
             spriteBatch.End();
 
@@ -227,6 +233,7 @@ namespace Snake
             if (snakeHead.X == apple.X && snakeHead.Y == apple.Y)
             {
                 // Enqueue head
+                score += 1;
                 snake.Enqueue(new Vector2Int(snakeHead.X, snakeHead.Y));
                 apple = GetApplePosition();
             }
