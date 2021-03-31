@@ -71,7 +71,7 @@ namespace Snake
 
         protected override void Update(GameTime gameTime)
         {
-            if (Keyboard.GetState().IsKeyDown(Keys.Escape)) Exit();
+            ProcessKeyboardState();
             base.Update(gameTime);
         }
 
@@ -89,6 +89,29 @@ namespace Snake
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        // Processes the current keyboard state
+        private void ProcessKeyboardState()
+        {
+            // Get keyboard state
+            KeyboardState keyboardState = Keyboard.GetState();
+            // If escape get, exit
+            if (keyboardState.IsKeyDown(Keys.Escape)) Exit();
+            // Process direction keys
+            else if (keyboardState.IsKeyDown(Keys.Up)) InputDirection(Direction.Up);
+            else if (keyboardState.IsKeyDown(Keys.Down)) InputDirection(Direction.Down);
+            else if (keyboardState.IsKeyDown(Keys.Left)) InputDirection(Direction.Left);
+            else if (keyboardState.IsKeyDown(Keys.Right)) InputDirection(Direction.Right);
+        }
+
+        // Processes given input direction
+        private void InputDirection(Direction direction)
+        {
+            if (direction == Direction.Up) snake.Y -= 1;
+            else if (direction == Direction.Down) snake.Y += 1;
+            else if (direction == Direction.Left) snake.X -= 1;
+            else if (direction == Direction.Right) snake.X += 1;
         }
     }
 }
