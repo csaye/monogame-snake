@@ -35,17 +35,44 @@ namespace Snake
         // Snake
         private struct Snake
         {
+            private int _x;
+            public int X
+            {
+                get { return _x; }
+                set
+                {
+                    if (value < 0) _x = 0;
+                    else if (value > BoardWidth - 1) _x = BoardWidth - 1;
+                    else _x = value;
+                }
+            }
+            private int _y;
+            public int Y
+            {
+                get { return _y; }
+                set
+                {
+                    if (value < 0) _y = 0;
+                    else if (value > BoardHeight - 1) _y = BoardHeight - 1;
+                    else _y = value;
+                }
+            }
+
             public Snake(int x, int y)
             {
+                _x = 0;
+                _y = 0;
                 X = x;
                 Y = y;
             }
-
-            public int X { get; set; }
-            public int Y { get; set; }
         }
 
-        Snake snake = new Snake(0, 0);
+        private bool takeInput = true;
+        private Snake snake = new Snake(0, 0);
+        private Direction snakeDirection = new Direction();
+
+        private int frames = 0;
+        private int framesPerUpdate = 10;
 
         public Game1()
         {
@@ -71,8 +98,16 @@ namespace Snake
 
         protected override void Update(GameTime gameTime)
         {
+            frames += 1;
             ProcessKeyboardState();
             base.Update(gameTime);
+
+            // Frame update
+            if (frames % framesPerUpdate == 0)
+            {
+                MoveSnake();
+                takeInput = true;
+            }
         }
 
         protected override void Draw(GameTime gameTime)
@@ -108,10 +143,23 @@ namespace Snake
         // Processes given input direction
         private void InputDirection(Direction direction)
         {
-            if (direction == Direction.Up) snake.Y -= 1;
-            else if (direction == Direction.Down) snake.Y += 1;
-            else if (direction == Direction.Left) snake.X -= 1;
-            else if (direction == Direction.Right) snake.X += 1;
+            // Return if not taking input
+            if (!takeInput) return;
+            takeInput = false;
+            // Change snake direction based on input
+            if (direction == Direction.Up && snakeDirection != Direction.Down) snakeDirection = Direction.Up;
+            else if (direction == Direction.Down && snakeDirection != Direction.Up) snakeDirection = Direction.Down;
+            else if (direction == Direction.Left && snakeDirection != Direction.Right) snakeDirection = Direction.Left;
+            else if (direction == Direction.Right && snakeDirection != Direction.Left) snakeDirection = Direction.Right;
+        }
+
+        // Moves snake in current direction
+        private void MoveSnake()
+        {
+            if (snakeDirection == Direction.Up) snake.Y -= 1;
+            else if (snakeDirection == Direction.Down) snake.Y += 1;
+            else if (snakeDirection == Direction.Left) snake.X -= 1;
+            else if (snakeDirection == Direction.Right) snake.X += 1;
         }
     }
 }
