@@ -9,6 +9,19 @@ namespace Snake
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
 
+        private enum BlockType
+        {
+            Empty,
+            Snake,
+            Apple
+        }
+
+        // Board
+        private const int GridSize = 16;
+        private const int BoardWidth = 16;
+        private const int BoardHeight = 16;
+        private BlockType[,] board = new BlockType[BoardWidth, BoardHeight];
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -19,8 +32,8 @@ namespace Snake
         protected override void Initialize()
         {
             // Initialize graphics
-            graphics.PreferredBackBufferWidth = 300;
-            graphics.PreferredBackBufferHeight = 300;
+            graphics.PreferredBackBufferWidth = GridSize * BoardWidth;
+            graphics.PreferredBackBufferHeight = GridSize * BoardHeight;
             graphics.ApplyChanges();
 
             base.Initialize();
