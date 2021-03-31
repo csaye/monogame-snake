@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System;
+using System.Collections.Generic;
 
 namespace Snake
 {
@@ -30,10 +30,9 @@ namespace Snake
         private const int GridSize = 16;
         private const int BoardWidth = 16;
         private const int BoardHeight = 16;
-        private BlockType[,] board = new BlockType[BoardWidth, BoardHeight];
 
-        // Snake
-        private struct Snake
+        // SnakeHead
+        private struct SnakeHead
         {
             private int _x;
             public int X
@@ -41,8 +40,8 @@ namespace Snake
                 get { return _x; }
                 set
                 {
-                    if (value < 0) _x = 0;
-                    else if (value > BoardWidth - 1) _x = BoardWidth - 1;
+                    if (value < 0) _x = BoardWidth - 1;
+                    else if (value > BoardWidth - 1) _x = 0;
                     else _x = value;
                 }
             }
@@ -52,13 +51,13 @@ namespace Snake
                 get { return _y; }
                 set
                 {
-                    if (value < 0) _y = 0;
-                    else if (value > BoardHeight - 1) _y = BoardHeight - 1;
+                    if (value < 0) _y = BoardHeight - 1;
+                    else if (value > BoardHeight - 1) _y = 0;
                     else _y = value;
                 }
             }
 
-            public Snake(int x, int y)
+            public SnakeHead(int x, int y)
             {
                 _x = 0;
                 _y = 0;
@@ -67,9 +66,23 @@ namespace Snake
             }
         }
 
+        // Vector2Int struct
+        private struct Vector2Int
+        {
+            public int X { get; set; }
+            public int Y { get; set; }
+
+            public Vector2Int(int x, int y)
+            {
+                X = x;
+                Y = y;
+            }
+        }
+
         private bool takeInput = true;
-        private Snake snake = new Snake(0, 0);
-        private Direction snakeDirection = new Direction();
+        private SnakeHead snakeHead = new SnakeHead(0, 0);
+        private Queue<Vector2Int> snake = new Queue<Vector2Int>();
+        private Direction snakeDirection = Direction.Down;
 
         private int frames = 0;
         private int framesPerUpdate = 10;
@@ -87,6 +100,9 @@ namespace Snake
             graphics.PreferredBackBufferWidth = GridSize * BoardWidth;
             graphics.PreferredBackBufferHeight = GridSize * BoardHeight;
             graphics.ApplyChanges();
+
+            // Initialize snake
+            snake.Enqueue(new Vector2Int(snakeHead.X, snakeHead.Y));
 
             base.Initialize();
         }
@@ -116,10 +132,15 @@ namespace Snake
 
             spriteBatch.Begin();
 
-            Texture2D snakeTexture = new Texture2D(GraphicsDevice, 1, 1);
-            snakeTexture.SetData(new Color[] { Color.Green });
-            Rectangle snakeRect = new Rectangle(snake.X * GridSize, snake.Y * GridSize, GridSize, GridSize);
-            spriteBatch.Draw(snakeTexture, snakeRect, Color.White);
+            Texture2D texture = new Texture2D(GraphicsDevice, 1, 1);
+
+            // Draw snake
+            texture.SetData(new Color[] { Color.Green });
+            foreach (Vector2Int position in snake)
+            {
+                Rectangle snakeRect = new Rectangle(position.X * GridSize, position.Y * GridSize, GridSize, GridSize);
+                spriteBatch.Draw(texture, snakeRect, Color.White);
+            }
 
             spriteBatch.End();
 
@@ -156,10 +177,15 @@ namespace Snake
         // Moves snake in current direction
         private void MoveSnake()
         {
-            if (snakeDirection == Direction.Up) snake.Y -= 1;
-            else if (snakeDirection == Direction.Down) snake.Y += 1;
-            else if (snakeDirection == Direction.Left) snake.X -= 1;
-            else if (snakeDirection == Direction.Right) snake.X += 1;
+            // Dequeue tail
+            snake.Dequeue();
+            // Move snake head
+            if (snakeDirection == Direction.Up) snakeHead.Y -= 1;
+            else if (snakeDirection == Direction.Down) snakeHead.Y += 1;
+            else if (snakeDirection == Direction.Left) snakeHead.X -= 1;
+            else if (snakeDirection == Direction.Right) snakeHead.X += 1;
+            // Enqueue head
+            snake.Enqueue(new Vector2Int(snakeHead.X, snakeHead.Y));
         }
     }
 }
