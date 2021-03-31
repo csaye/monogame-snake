@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 using System.Collections.Generic;
 
 namespace Snake
@@ -77,12 +78,39 @@ namespace Snake
                 X = x;
                 Y = y;
             }
+
+            public static bool operator == (Vector2Int a, Vector2Int b)
+            {
+                return a.X == b.X && a.Y == b.Y;
+            }
+
+            public static bool operator != (Vector2Int a, Vector2Int b)
+            {
+                return a.X != b.X || a.Y != b.Y;
+            }
+
+            public override bool Equals(object o)
+            {
+                if (!(o is Vector2Int)) return false;
+                else return Equals((Vector2Int)o);
+            }
+
+            public bool Equals(Vector2Int v)
+            {
+                return X == v.X && Y == v.Y;
+            }
+
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
         }
 
         private bool takeInput = true;
         private SnakeHead snakeHead = new SnakeHead(0, 0);
         private Queue<Vector2Int> snake = new Queue<Vector2Int>();
         private Direction snakeDirection = Direction.Down;
+        private Vector2Int apple;
 
         private int frames = 0;
         private int framesPerUpdate = 10;
@@ -103,6 +131,9 @@ namespace Snake
 
             // Initialize snake
             snake.Enqueue(new Vector2Int(snakeHead.X, snakeHead.Y));
+
+            // Initialize apple
+            apple = GetApplePosition();
 
             base.Initialize();
         }
@@ -132,14 +163,22 @@ namespace Snake
 
             spriteBatch.Begin();
 
-            Texture2D texture = new Texture2D(GraphicsDevice, 1, 1);
-
             // Draw snake
-            texture.SetData(new Color[] { Color.Green });
+            Texture2D snakeTexture = new Texture2D(GraphicsDevice, 1, 1);
+            snakeTexture.SetData(new Color[] { Color.Green });
             foreach (Vector2Int position in snake)
             {
                 Rectangle snakeRect = new Rectangle(position.X * GridSize, position.Y * GridSize, GridSize, GridSize);
-                spriteBatch.Draw(texture, snakeRect, Color.White);
+                spriteBatch.Draw(snakeTexture, snakeRect, Color.White);
+            }
+
+            // Draw apple
+            if (apple != new Vector2Int(-1, -1))
+            {
+                Texture2D appleTexture = new Texture2D(GraphicsDevice, 1, 1);
+                appleTexture.SetData(new Color[] { Color.Red });
+                Rectangle appleRect = new Rectangle(apple.X * GridSize, apple.Y * GridSize, GridSize, GridSize);
+                spriteBatch.Draw(appleTexture, appleRect, Color.White);
             }
 
             spriteBatch.End();
@@ -177,15 +216,44 @@ namespace Snake
         // Moves snake in current direction
         private void MoveSnake()
         {
-            // Dequeue tail
-            snake.Dequeue();
             // Move snake head
             if (snakeDirection == Direction.Up) snakeHead.Y -= 1;
             else if (snakeDirection == Direction.Down) snakeHead.Y += 1;
             else if (snakeDirection == Direction.Left) snakeHead.X -= 1;
             else if (snakeDirection == Direction.Right) snakeHead.X += 1;
-            // Enqueue head
-            snake.Enqueue(new Vector2Int(snakeHead.X, snakeHead.Y));
+            // If self, exit
+            if (snake.Contains(new Vector2Int(snakeHead.X, snakeHead.Y))) Exit();
+            // If apple, eat apple
+            if (snakeHead.X == apple.X && snakeHead.Y == apple.Y)
+            {
+                // Enqueue head
+                snake.Enqueue(new Vector2Int(snakeHead.X, snakeHead.Y));
+                apple = GetApplePosition();
+            }
+            // If empty
+            else
+            {
+                // Dequeue tail
+                snake.Dequeue();
+                // Enqueue head
+                snake.Enqueue(new Vector2Int(snakeHead.X, snakeHead.Y));
+            }
+        }
+
+        // Returns a random empty position
+        private Vector2Int GetApplePosition()
+        {
+            Random random = new Random();
+            int randomX = random.Next(BoardWidth);
+            int randomY = random.Next(BoardHeight);
+            Vector2Int position = new Vector2Int(randomX, randomY);
+            while (snake.Contains(position))
+            {
+                randomX = random.Next(BoardWidth);
+                randomY = random.Next(BoardHeight);
+                position = new Vector2Int(randomX, randomY);
+            }
+            return position;
         }
     }
 }
